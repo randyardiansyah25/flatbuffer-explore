@@ -1,0 +1,26 @@
+namespace entities;
+
+table Request {
+    date_start : string;
+    date_end : string;
+}
+
+table Archive {
+    id : long;
+    date_trans : string;
+    transaction_amount : double;
+    description : string;
+}
+
+table Status {
+    code : string;
+    message : string;
+}
+
+table ArchiveResp {
+    response : Status;
+    data : [Archive];
+}
+
+root_type Request;
+root_type ArchiveResp;

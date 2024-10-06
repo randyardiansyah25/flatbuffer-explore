@@ -1,0 +1,48 @@
+namespace fb;
+
+table Request {
+    date_start : string;
+    date_end : string;
+}
+
+table ArchiveItem {
+    id : long;
+    date_trans : string;
+    transaction_amount : double;
+    description : string;
+    status : int;
+}
+
+table HistoryItem {
+    id : long;
+    date_trans : string;
+    description : string;
+    debet_amount : double;
+    credit_amount : double;
+    balance : double;
+}
+
+table Status {
+    code : string;
+    message : string;
+}
+
+union ItemUnion {ArchiveItem, HistoryItem}
+
+table ItemUnionWrapper {
+    item : ItemUnion;
+}
+
+table ResponseArray {
+    response : Status;
+    data : [ItemUnionWrapper];
+}
+
+table ResponseObject {
+    response : Status;
+    data : ItemUnionWrapper;
+}
+
+root_type Request;
+root_type ResponseArray;
+root_type ResponseObject;

@@ -1,0 +1,64 @@
+package controller
+
+import (
+	"flatbuffer-explore/server/entities/fb"
+	"flatbuffer-explore/server/entities/object"
+
+	flatbuffers "github.com/google/flatbuffers/go"
+)
+
+type ArchiveController interface {
+	BuildArchiveData(data []object.ArchiveItem) flatbuffers.UOffsetT
+	GetBuilder() *flatbuffers.Builder
+}
+
+func NewArchiveController() ArchiveController {
+
+	impl := &archiveController{
+		builder: flatbuffers.NewBuilder(0),
+	}
+	return impl
+}
+
+type archiveController struct {
+	builder *flatbuffers.Builder
+}
+
+func (a *archiveController) GetBuilder() *flatbuffers.Builder {
+	return a.builder
+}
+
+func (a *archiveController) BuildArchiveData(data []object.ArchiveItem) flatbuffers.UOffsetT {
+
+	OffsetTable := make([]flatbuffers.UOffsetT, 0)
+	for _, v := range data {
+		// Create String dulu sebelum memanggil start
+		dt := a.builder.CreateString(v.DateTrans)
+		desc := a.builder.CreateString(v.Description)
+
+		// Buat Item dari Archive (ArchiveItem Table)
+		fb.ArchiveItemStart(a.builder)
+		fb.ArchiveItemAddId(a.builder, v.Id)
+		fb.ArchiveItemAddDateTrans(a.builder, dt)
+		fb.ArchiveItemAddDescription(a.builder, desc)
+		fb.ArchiveItemAddTransactionAmount(a.builder, v.TransactionAmount)
+		fb.ArchiveItemAddStatus(a.builder, int32(v.Status))
+		item := fb.ArchiveItemEnd(a.builder)
+
+		// Buat dulu offset Item Union Wrapper (ItemUnionWrapper Table)
+		fb.ItemUnionWrapperStart(a.builder)
+		fb.ItemUnionWrapperAddItem(a.builder, item)
+		fb.ItemUnionWrapperAddItemType(a.builder, fb.ItemUnionArchiveItem)
+		itemWrapper := fb.ItemUnionWrapperEnd(a.builder)
+		OffsetTable = append(OffsetTable, itemWrapper)
+	}
+
+	fb.ResponseArrayStartDataVector(a.builder, len(OffsetTable))
+	for _, v := range OffsetTable {
+		// menambahkan kedalam vector (array)
+		a.builder.PrependUOffsetT(v)
+	}
+
+	dataVec := a.builder.EndVector(len(OffsetTable))
+	return dataVec
+}

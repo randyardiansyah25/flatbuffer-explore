@@ -1,8 +1,8 @@
 package router
 
 import (
+	"flatbuffer-explore/server/delivery/handler"
 	"io"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kpango/glg"
@@ -18,16 +18,12 @@ func Start() error {
 	router.Use(gin.Recovery())
 
 	RegisterHandler(router)
-	listenerPort := os.Getenv("app.listener_port")
+	listenerPort := "8800"
 	_ = glg.Logf("[HTTP] Listening at : %s", listenerPort)
 	return router.Run(":" + listenerPort)
 
 }
 
 func RegisterHandler(router *gin.Engine) {
-	router.POST("/request", requestHandler)
-}
-
-func requestHandler(ctx *gin.Context) {
-	
+	router.POST("/request", handler.ArchiveHandler)
 }

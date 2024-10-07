@@ -13,7 +13,6 @@ type ArchiveController interface {
 }
 
 func NewArchiveController() ArchiveController {
-
 	impl := &archiveController{
 		builder: flatbuffers.NewBuilder(0),
 	}
@@ -29,8 +28,7 @@ func (a *archiveController) GetBuilder() *flatbuffers.Builder {
 }
 
 func (a *archiveController) BuildArchiveData(data []object.ArchiveItem) flatbuffers.UOffsetT {
-
-	OffsetTable := make([]flatbuffers.UOffsetT, 0)
+	OffsetStore := make([]flatbuffers.UOffsetT, 0)
 	for _, v := range data {
 		// Create String dulu sebelum memanggil start
 		dt := a.builder.CreateString(v.DateTrans)
@@ -50,15 +48,15 @@ func (a *archiveController) BuildArchiveData(data []object.ArchiveItem) flatbuff
 		fb.ItemUnionWrapperAddItem(a.builder, item)
 		fb.ItemUnionWrapperAddItemType(a.builder, fb.ItemUnionArchiveItem)
 		itemWrapper := fb.ItemUnionWrapperEnd(a.builder)
-		OffsetTable = append(OffsetTable, itemWrapper)
+		OffsetStore = append(OffsetStore, itemWrapper)
 	}
 
-	fb.ResponseArrayStartDataVector(a.builder, len(OffsetTable))
-	for _, v := range OffsetTable {
+	fb.ResponseArrayStartDataVector(a.builder, len(OffsetStore))
+	for _, v := range OffsetStore {
 		// menambahkan kedalam vector (array)
 		a.builder.PrependUOffsetT(v)
 	}
 
-	dataVec := a.builder.EndVector(len(OffsetTable))
+	dataVec := a.builder.EndVector(len(OffsetStore))
 	return dataVec
 }

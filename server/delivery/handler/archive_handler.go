@@ -16,14 +16,14 @@ func ArchiveHandler(ctx *gin.Context) {
 	httpio := httpio.NewRequestIO(ctx)
 	data, er := io.ReadAll(ctx.Request.Body)
 	if er != nil {
-		httpio.ResponseString(http.StatusInternalServerError, "internal service error")
+		httpio.ResponseString(http.StatusBadGateway, er.Error())
 		return
 	}
 
 	ctl := controller.NewRequestController()
 	req := object.Request{}
 	ctl.Read(data, &req)
-	httpio.RecvRaw(req)
+	httpio.PrintRecv(req)
 
 	items := getArchive()
 	status := object.Status{

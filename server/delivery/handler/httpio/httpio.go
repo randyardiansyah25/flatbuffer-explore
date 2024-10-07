@@ -20,7 +20,7 @@ type RequestIO interface {
 	ResponseWithAbort(statuscode int, responseBody interface{})
 	ResponseString(statusCode int, response string)
 	ResponseStringWithAbort(statusCode int, response string)
-	RecvRaw(outObject interface{})
+	PrintRecv(outObject interface{})
 	ResponseDataWithAbort(statusCode int, data []byte, logData interface{}, contentType string)
 	ResponseData(statusCode int, data []byte, logData interface{}, contentType string)
 }
@@ -46,7 +46,7 @@ func (f *formio) Recv() {
 	go receiveForm("RECV", header, "", f.request.RemoteAddr, path)
 }
 
-func (f *formio) RecvRaw(outObject interface{}) {
+func (f *formio) PrintRecv(outObject interface{}) {
 	header := params.Header{}
 	path := fmt.Sprintf("%s %s", f.request.Method, f.request.URL.Path)
 	_ = f.context.ShouldBindHeader(&header)

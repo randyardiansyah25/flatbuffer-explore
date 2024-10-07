@@ -2,8 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flatbuffer-explore/client/entities/controller"
-	"flatbuffer-explore/server/entities/object"
+	"flatbuffer-explore/client/entities/object"
 	"fmt"
 	"net/http"
 
@@ -28,6 +29,11 @@ func main() {
 	if res.StatusCode() != http.StatusOK {
 		fmt.Printf("code:%d, message : %s\n", res.StatusCode(), res.Message())
 	} else {
-		fmt.Println(res.Message())
+		ctl.Reset()
+		respData := ctl.ReadArchiveResponse(res.Message())
+		// fmt.Println(res.Message())
+		// fmt.Println(respData)
+		j, _ := json.MarshalIndent(respData,"", "  ")
+		fmt.Println(string(j))
 	}
 }

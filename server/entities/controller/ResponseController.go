@@ -8,6 +8,7 @@ import (
 
 type ResponseController interface {
 	BuildResponseArray(code string, message string, vec flatbuffers.UOffsetT) []byte
+	BuildResponseObject(code string, message string, object flatbuffers.UOffsetT) []byte
 }
 
 func NewResponseController(builder *flatbuffers.Builder) ResponseController {
@@ -42,6 +43,19 @@ func (rc *responseControllerImpl) BuildResponseArray(code string, message string
 	fb.ResponseArrayAddResponse(rc.builder, status)
 	fb.ResponseArrayAddData(rc.builder, vec)
 	resp := fb.ResponseArrayEnd(rc.builder)
+
+	rc.builder.Finish(resp)
+	return rc.builder.FinishedBytes()
+}
+
+func (rc *responseControllerImpl) BuildResponseObject(code string, message string, object flatbuffers.UOffsetT) []byte {
+	// Prepare dulu untuk status,
+	status := rc.makeStatus(code, message)
+
+	fb.ResponseObjectStart(rc.builder)
+	fb.ResponseObjectAddResponse(rc.builder, status)
+	fb.ResponseObjectAddData(rc.builder, object)
+	resp := fb.ResponseObjectEnd(rc.builder)
 
 	rc.builder.Finish(resp)
 	return rc.builder.FinishedBytes()

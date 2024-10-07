@@ -25,6 +25,22 @@ func HistoryHandler(ctx *gin.Context) {
 	ctl.Read(buf, &reqObj)
 	httpio.PrintRecv(reqObj)
 
+	historyData := getHistory()
+	resp := object.Response[[]object.HistoryItem]{
+		Response: object.Status{
+			Code:    "00",
+			Message: "History Success",
+		},
+		Data: historyData,
+	}
+
+	historyController := controller.NewHistoryController()
+	historyBuilder := historyController.GetBuilder()
+	dataVector := historyController.BuildHistoryData(historyData)
+
+	respCtl := controller.NewResponseController(historyBuilder)
+	respdata := respCtl.BuildResponseArray(resp.Response.Code, resp.Response.Message, dataVector)
+	httpio.ResponseData(http.StatusOK, respdata, resp, "application/octet-stream")
 }
 
 func getHistory() (record []object.HistoryItem) {

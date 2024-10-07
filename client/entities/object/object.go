@@ -10,7 +10,7 @@ type ArchiveItem struct {
 	DateTrans         string
 	TransactionAmount float64
 	Description       string
-	Status            int
+	Status            int32
 }
 
 type HistoryItem struct {

@@ -9,6 +9,7 @@ import (
 
 type ArchiveController interface {
 	BuildArchiveData(data []object.ArchiveItem) flatbuffers.UOffsetT
+	BuildArchiveItem(data object.ArchiveItem) flatbuffers.UOffsetT
 	GetBuilder() *flatbuffers.Builder
 }
 
@@ -59,4 +60,23 @@ func (a *archiveController) BuildArchiveData(data []object.ArchiveItem) flatbuff
 
 	dataVec := a.builder.EndVector(len(OffsetStore))
 	return dataVec
+}
+
+func (a *archiveController) BuildArchiveItem(data object.ArchiveItem) flatbuffers.UOffsetT {
+	dt := a.builder.CreateString(data.DateTrans)
+	desc := a.builder.CreateString(data.Description)
+
+	fb.ArchiveItemStart(a.builder)
+	fb.ArchiveItemAddId(a.builder, data.Id)
+	fb.ArchiveItemAddDateTrans(a.builder, dt)
+	fb.ArchiveItemAddDescription(a.builder, desc)
+	fb.ArchiveItemAddTransactionAmount(a.builder, data.TransactionAmount)
+	fb.ArchiveItemAddStatus(a.builder, int32(data.Status))
+	fbitem := fb.ArchiveItemEnd(a.builder)
+
+	fb.ItemUnionWrapperStart(a.builder)
+	fb.ItemUnionWrapperAddItem(a.builder, fbitem)
+	fb.ItemUnionWrapperAddItemType(a.builder, fb.ItemUnionArchiveItem)
+	fbwraperitem := fb.ItemUnionWrapperEnd(a.builder)
+	return fbwraperitem
 }

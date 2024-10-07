@@ -25,5 +25,7 @@ func Start() error {
 }
 
 func RegisterHandler(router *gin.Engine) {
-	router.POST("/request", handler.ArchiveHandler)
+	router.POST("/request/archive", handler.ArchiveHandler)
+	router.POST("/request/history", handler.HistoryHandler)
+	router.GET("/request/archive/:id", handler.ArchiveItemHandler)
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-faker/faker/v4"
@@ -39,11 +40,46 @@ func ArchiveHandler(ctx *gin.Context) {
 
 	archiveCtl := controller.NewArchiveController()
 	fbData := archiveCtl.BuildArchiveData(items)
-	
+
 	rctl := controller.NewResponseController(archiveCtl.GetBuilder())
 	respData := rctl.BuildResponseArray(status.Code, status.Message, fbData)
 
 	httpio.ResponseData(http.StatusOK, respData, response, "application/octet-stream")
+}
+
+func ArchiveItemHandler(ctx *gin.Context) {
+	httpio := httpio.NewRequestIO(ctx)
+	sId := ctx.Param("id")
+	nId, _ := strconv.Atoi(sId)
+	archiveId := int64(nId)
+	httpio.Recv()
+
+	item := getArchiveItem(archiveId)
+	logObj := object.Response[object.ArchiveItem]{
+		Response: object.Status{
+			Code:    "00",
+			Message: "Archive Item Success",
+		},
+		Data: item,
+	}
+
+	ctl := controller.NewArchiveController()
+	fbItem := ctl.BuildArchiveItem(item)
+
+	respctl := controller.NewResponseController(ctl.GetBuilder())
+	respData := respctl.BuildResponseObject(logObj.Response.Code, logObj.Response.Message, fbItem)
+
+	httpio.ResponseData(http.StatusOK, respData, logObj, "application/octet-stream")
+}
+
+func getArchiveItem(id int64) object.ArchiveItem {
+	return object.ArchiveItem{
+		Id:                id,
+		DateTrans:         faker.Timestamp(),
+		TransactionAmount: float64(rand.Intn(1000000) + 100),
+		Description:       faker.Sentence(),
+		Status:            rand.Intn(2),
+	}
 }
 
 func getArchive() (items []object.ArchiveItem) {

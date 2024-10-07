@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"flatbuffer-explore/client/entities/fb"
 	"flatbuffer-explore/client/entities/object"
-	"flatbuffer-explore/server/entities/fb"
 
 	flatbuffers "github.com/google/flatbuffers/go"
 )
@@ -10,10 +10,11 @@ import (
 type ArchiveRequestController interface {
 	MakeArchiveRequest(req object.Request) []byte
 	ReadArchiveResponse(buf []byte) object.Response[[]object.ArchiveItem]
+	ReadArchiveItemResponse(buf []byte) object.Response[object.ArchiveItem]
 	Reset()
 }
 
-func NewRequestController() ArchiveRequestController {
+func NewArchiveRequestController() ArchiveRequestController {
 	impl := &archiveRrequestControllerImpl{
 		builder: flatbuffers.NewBuilder(0),
 	}
@@ -65,7 +66,7 @@ func (rc *archiveRrequestControllerImpl) ReadArchiveResponse(buf []byte) object.
 					DateTrans:         string(fbItem.DateTrans()),
 					TransactionAmount: fbItem.TransactionAmount(),
 					Description:       string(fbItem.Description()),
-					Status:            int(fbItem.Status()),
+					Status:            fbItem.Status(),
 				}
 				items[i] = item
 			}
@@ -73,4 +74,28 @@ func (rc *archiveRrequestControllerImpl) ReadArchiveResponse(buf []byte) object.
 	}
 	resp.Data = items
 	return resp
+}
+
+func (rc *archiveRrequestControllerImpl) ReadArchiveItemResponse(buf []byte) (resp object.Response[object.ArchiveItem]) {
+	fbdata := fb.GetRootAsResponseObject(buf, 0)
+	fbstatus := &fb.Status{}
+	fbdata.Response(fbstatus)
+
+	resp.Response.Code = string(fbstatus.Code())
+	resp.Response.Message = string(fbstatus.Message())
+
+	itemWrapper := &fb.ItemUnionWrapper{}
+	fbdata.Data(itemWrapper)
+	unionTable := new(flatbuffers.Table)
+	if itemWrapper.Item(unionTable) {
+		item := fb.ArchiveItem{}
+		item.Init(unionTable.Bytes, unionTable.Pos)
+		resp.Data.Id = item.Id()
+		resp.Data.DateTrans = string(item.DateTrans())
+		resp.Data.Description = string(item.Description())
+		resp.Data.TransactionAmount = item.TransactionAmount()
+		resp.Data.Status = item.Status()
+	}
+
+	return
 }

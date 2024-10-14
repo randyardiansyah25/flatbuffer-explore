@@ -100,12 +100,12 @@ func (f *formio) sendResponseString(statusode int, responseBody string, abort bo
 }
 
 func (f *formio) sendResponse(statusode int, responseBody interface{}, abort bool) {
-	outJson("SEND", responseBody, f.request.RemoteAddr, f.request.URL.Path)
 	f.context.Header("Content-Type", "application/json")
 	f.context.JSON(statusode, responseBody)
 	if abort {
 		f.context.Abort()
 	}
+	go outJson("SEND", responseBody, f.request.RemoteAddr, f.request.URL.Path)
 }
 
 func (f *formio) ResponseDataWithAbort(statusCode int, data []byte, logData interface{}, contentType string) {
@@ -117,11 +117,12 @@ func (f *formio) ResponseData(statusCode int, data []byte, logData interface{}, 
 }
 
 func (f *formio) sendResponseData(statusode int, data []byte, logData interface{}, contentType string, abort bool) {
-	outJson("SEND", logData, f.request.RemoteAddr, f.request.URL.Path)
+	
 	f.context.Data(statusode, contentType, data)
 	if abort {
 		f.context.Abort()
 	}
+	go outJson("SEND", logData, f.request.RemoteAddr, f.request.URL.Path)
 }
 
 func outJson(cmd string, values interface{}, addr string, path string) {
